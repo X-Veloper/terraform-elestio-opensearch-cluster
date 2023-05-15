@@ -44,16 +44,16 @@ module "cluster" {
   }
 }
 
-output "kibana_admin" {
-  value       = module.cluster.cluster_kibana_admin
+output "cluster_admin" {
+  value       = module.cluster.cluster_admin
   sensitive   = true
-  description = "Kibana connection infos/secrets"
+  description = "Kibana secrets"
 }
 
-output "opensearch_admin" {
+output "cluster_database_admin" {
   value       = module.cluster.cluster_database_admin
   sensitive   = true
-  description = "Opensearch cluster connection infos/secrets"
+  description = "Opensearch database secrets"
 }
 ```
 
@@ -67,53 +67,53 @@ output "opensearch_admin" {
 Use `terraform output cluster_database_admin` command to output database secrets:
 
 ```bash
-# cluster_database_admin
-{
-"auth" = {
-"password" = "*****"
-"user" = "root"
-}
-"nodes" = [
-"https://opensearch-0-u525.vm.elestio.app:19200",
-"https://opensearch-1-u525.vm.elestio.app:19200",
-]
-}
+  # cluster_database_admin
+  {
+    "auth" = {
+      "password" = "*****"
+      "user" = "root"
+    }
+    "nodes" = [
+      "https://opensearch-0-u525.vm.elestio.app:19200",
+      "https://opensearch-1-u525.vm.elestio.app:19200",
+    ]
+  }
 ```
 
+Here is an example of how to use the cluster and all its nodes in the [Javascript client](https://opensearch.org/docs/latest/clients/javascript/index/) of Opensearch.
+
 ```js
-////////////// JS sample //////////////
+// Javascript example
 const { Client } = require("@opensearch-project/opensearch/.");
 
 const client = new Client({
-auth: {
-username: "root",
-password: "*****",
-},
-nodes: [
-"https://opensearch-0-u525.vm.elestio.app:19200",
-"https://opensearch-1-u525.vm.elestio.app:19200",
-],
-nodeSelector: "round-robin",
+  auth: {
+    username: "root",
+    password: "*****",
+  },
+  nodes: [
+    "https://opensearch-0-u525.vm.elestio.app:19200",
+    "https://opensearch-1-u525.vm.elestio.app:19200",
+  ],
+  nodeSelector: "round-robin",
 });
 
 client
-.search({
-index: "my-index",
-body: {
-query: {
-match: { title: "OpenSearch" },
-},
-},
-})
-.then((response) => {
-console.log(response.hits.hits);
-})
-.catch((error) => {
-console.log(error);
-});
-////////////// ////////////// ////////////// //////////////
+  .search({
+    index: "my-index",
+    body: {
+      query: {
+        match: { title: "OpenSearch" },
+      },
+    },
+  })
+  .then((response) => {
+    console.log(response.hits.hits);
+  })
+  .catch((error) => {
+    console.log(error);
+  });
 ```
-
 
 
 ## Inputs

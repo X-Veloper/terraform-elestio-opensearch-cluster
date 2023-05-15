@@ -15,6 +15,8 @@ Some knowledge of [terraform](https://developer.hashicorp.com/terraform/intro) i
   You need a Terraform CLI version equal or higher than v0.14.0.
   To ensure you're using the acceptable version of Terraform you may run the following command: `terraform -v`
 
+<br>
+
 ## Instructions
 
 1. Rename `secrets.tfvars.example` to `secrets.tfvars` and fill in the values.
@@ -38,6 +40,8 @@ Some knowledge of [terraform](https://developer.hashicorp.com/terraform/intro) i
    terraform output cluster_database_admin # OpeanSearch Database secrets
    ```
 
+<br>
+
 ## Testing
 
 Use `terraform output cluster_database_admin` command to output database secrets:
@@ -56,37 +60,32 @@ Use `terraform output cluster_database_admin` command to output database secrets
 }
 ```
 
-1.  Create the first index on the **first node**:
+1.  Create the first index on the **first node** and add some data:
 
     ```bash
     curl -XPUT -u 'root:*****' 'https://opensearch-0-u525.vm.elestio.app:19200/my-first-index'
-    ```
-
-2.  Add some data to your newly created index:
-
-    ```bash
     curl -XPUT -u 'root:*****' 'https://opensearch-0-u525.vm.elestio.app:19200/my-first-index/_doc/1' -H 'Content-Type: application/json' -d '{"Description": "To be or not to be, that is the question."}'
     ```
 
-3.  Retrieve the data on the **second node** to see that it was replicated properly:
+2.  Retrieve the data on the **second node** to see that it was replicated properly:
 
     ```bash
     curl -XGET -u 'root:*****' 'https://opensearch-1-u525.vm.elestio.app:19200/my-first-index/_doc/1'
     ```
 
-4.  After verifying that the cluster is working, delete the document and the index:
+3.  After verifying that the cluster is working, delete the document and the index:
 
     ```bash
+    # You can make these requests on any of the nodes
     curl -XDELETE -u 'root:*****' 'https://opensearch-1-u525.vm.elestio.app:19200/my-first-index/_doc/1'
-    ```
-
-    ```bash
     curl -XDELETE -u 'root:*****' 'https://opensearch-0-u525.vm.elestio.app:19200/my-first-index/'
     ```
 
 You can try turning off the first node on the [Elestio dashboard](https://dash.elest.io/).
 The second node remains functional.
 When you restart it, it automatically updates with the new data.
+
+<br>
 
 ## How to use OpenSearch cluster
 
@@ -95,19 +94,21 @@ Use `terraform output cluster_database_admin` command to output database secrets
 ```bash
 # cluster_database_admin
 {
-"auth" = {
-  "password" = "*****"
-  "user" = "root"
-}
-"nodes" = [
-  "https://opensearch-0-u525.vm.elestio.app:19200",
-  "https://opensearch-1-u525.vm.elestio.app:19200",
-]
+  "auth" = {
+    "password" = "*****"
+    "user" = "root"
+  }
+  "nodes" = [
+    "https://opensearch-0-u525.vm.elestio.app:19200",
+    "https://opensearch-1-u525.vm.elestio.app:19200",
+  ]
 }
 ```
 
+Here is an example of how to use the cluster and all its nodes in the [Javascript client](https://opensearch.org/docs/latest/clients/javascript/index/) of Opensearch.
+
 ```js
-////////////// JS sample //////////////
+// Javascript example
 const { Client } = require("@opensearch-project/opensearch/.");
 
 const client = new Client({
@@ -137,5 +138,4 @@ client
   .catch((error) => {
     console.log(error);
   });
-////////////// ////////////// ////////////// //////////////
 ```

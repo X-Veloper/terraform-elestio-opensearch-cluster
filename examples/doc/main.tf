@@ -28,14 +28,14 @@ module "cluster" {
   }
 }
 
-output "kibana_admin" {
-  value       = module.cluster.cluster_kibana_admin
+output "cluster_admin" {
+  value       = module.cluster.cluster_admin
   sensitive   = true
-  description = "Kibana connection infos/secrets"
+  description = "Kibana secrets"
 }
 
-output "opensearch_admin" {
+output "cluster_database_admin" {
   value       = module.cluster.cluster_database_admin
   sensitive   = true
-  description = "Opensearch cluster connection infos/secrets"
+  description = "Opensearch database secrets"
 }
