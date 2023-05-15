@@ -1,0 +1,130 @@
+formatter: "" # this is required
+
+version: ""
+
+header-from: main.tf
+footer-from: ""
+
+recursive:
+  enabled: false
+  path: modules
+
+sections:
+  hide: []
+  show: []
+
+content: |-
+  # Elestio OpenSearch Cluster Terraform module
+
+  If you can't afford for your OpenSearch database to be down for even a few minutes, a cluster is a great option to ensure high availability.
+
+  A cluster scenario means that one node can be taken offline (e.g. for maintenance or upgrade purposes) without impacting availability, as the other node will continue to serve production traffic. Further, it doubles your capacity to read or write to the database and provides an additional layer of protection against data loss.
+
+  {{ .Header }}
+
+  This module deploy multiple OpenSearch nodes on Elestio and commands are automatically executed to link them.
+
+  ## Usage
+
+  There is a [ready-to-deploy example](https://github.com/elestio-examples/terraform-elestio-opensearch-cluster/tree/main/examples/get_started) included in the [examples](https://github.com/elestio-examples/terraform-elestio-opensearch-cluster/tree/main/examples) folder but simple usage is as follows:
+
+  ```hcl
+  {{ include "examples/doc/main.tf" }}
+  ```
+
+  ## Examples
+
+  - [Get Started](https://github.com/elestio-examples/terraform-elestio-opensearch-cluster/tree/main/examples/get_started) - Ready-to-deploy example which creates OpenSearch Cluster on Elestio with Terraform in 5 minutes.
+
+
+  ## How to use OpenSearch cluster
+
+  Use `terraform output cluster_database_admin` command to output database secrets:
+
+  ```bash
+  # cluster_database_admin
+  {
+  "auth" = {
+    "password" = "*****"
+    "user" = "root"
+  }
+  "nodes" = [
+    "https://opensearch-0-u525.vm.elestio.app:19200",
+    "https://opensearch-1-u525.vm.elestio.app:19200",
+  ]
+  }
+  ```
+
+  ```js
+  ////////////// JS sample //////////////
+  const { Client } = require("@opensearch-project/opensearch/.");
+
+  const client = new Client({
+    auth: {
+      username: "root",
+      password: "*****",
+    },
+    nodes: [
+      "https://opensearch-0-u525.vm.elestio.app:19200",
+      "https://opensearch-1-u525.vm.elestio.app:19200",
+    ],
+    nodeSelector: "round-robin",
+  });
+
+  client
+    .search({
+      index: "my-index",
+      body: {
+        query: {
+          match: { title: "OpenSearch" },
+        },
+      },
+    })
+    .then((response) => {
+      console.log(response.hits.hits);
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+  ////////////// ////////////// ////////////// //////////////
+  ```
+
+
+  {{ .Footer }}
+  {{ .Inputs }}
+  {{ .Modules }}
+  {{ .Outputs }}
+  {{ .Providers }}
+  {{ .Requirements }}
+  {{ .Resources }}
+
+output:
+  file: ""
+  mode: inject
+  template: |-
+    <!-- BEGIN_TF_DOCS -->
+    {{ .Content }}
+    <!-- END_TF_DOCS -->
+
+output-values:
+  enabled: false
+  from: ""
+
+sort:
+  enabled: true
+  by: name
+
+settings:
+  anchor: true
+  color: true
+  default: true
+  description: false
+  escape: true
+  hide-empty: false
+  html: true
+  indent: 2
+  lockfile: true
+  read-comments: true
+  required: true
+  sensitive: true
+  type: true
