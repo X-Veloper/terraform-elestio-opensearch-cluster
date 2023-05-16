@@ -19,11 +19,9 @@ There is a [ready-to-deploy example](https://github.com/elestio-examples/terrafo
 module "cluster" {
   source = "elestio-examples/opensearch-cluster/elestio"
 
-  project_id         = "1234"
-  server_name        = "opensearch"
-  opensearch_version = null # keep `null` for recommended Elestio version
-  support_level      = "level1"
-  admin_email        = "admin@example.com"
+  project_id  = "1234"
+  server_name = "opensearch"
+  admin_email = "admin@example.com"
   nodes = [
     {
       provider_name = "hetzner"
@@ -80,7 +78,7 @@ Use `terraform output cluster_database_admin` command to output database secrets
   }
 ```
 
-Here is an example of how to use the cluster and all its nodes in the [Javascript client](https://opensearch.org/docs/latest/clients/javascript/index/) of Opensearch.
+Here is an example of how to use the Opensearch cluster and all its nodes in the [Javascript client](https://opensearch.org/docs/latest/clients/javascript/index/).
 
 ```js
 // Javascript example
@@ -115,6 +113,15 @@ client
   });
 ```
 
+## Scale the nodes
+
+To adjust the cluster size:
+
+- Adding nodes: Run `terraform apply` after adding a new node, and it will be seamlessly integrated into the cluster.
+- Removing nodes: The excess nodes will cleanly leave the cluster on the next `terraform apply`.
+
+Please note that changing the node count requires a reboot, which may result in a few minutes of service downtime.
+
 
 ## Inputs
 
@@ -122,11 +129,11 @@ client
 |------|-------------|------|---------|:--------:|
 | <a name="input_admin_email"></a> [admin\_email](#input\_admin\_email) | Related [documentation](https://registry.terraform.io/providers/elestio/elestio/latest/docs/resources/opensearch#admin_email) `#admin_email` | `string` | n/a | yes |
 | <a name="input_nodes"></a> [nodes](#input\_nodes) | See [providers list](https://registry.terraform.io/providers/elestio/elestio/latest/docs/guides/3_providers_datacenters_server_types) | <pre>list(<br>    object({<br>      provider_name = string<br>      datacenter    = string<br>      server_type   = string<br>    })<br>  )</pre> | n/a | yes |
-| <a name="input_opensearch_version"></a> [opensearch\_version](#input\_opensearch\_version) | Related [documentation](https://registry.terraform.io/providers/elestio/elestio/latest/docs/resources/opensearch#version) `#version` | `string` | n/a | yes |
+| <a name="input_opensearch_version"></a> [opensearch\_version](#input\_opensearch\_version) | Related [documentation](https://registry.terraform.io/providers/elestio/elestio/latest/docs/resources/opensearch#version) `#version`.<br>Use `null` for recommended Elestio version. | `string` | `null` | no |
 | <a name="input_project_id"></a> [project\_id](#input\_project\_id) | Related [documentation](https://registry.terraform.io/providers/elestio/elestio/latest/docs/resources/opensearch#project_id) `#project_id` | `string` | n/a | yes |
 | <a name="input_server_name"></a> [server\_name](#input\_server\_name) | Related [documentation](https://registry.terraform.io/providers/elestio/elestio/latest/docs/resources/opensearch#server_name) `#server_name` | `string` | n/a | yes |
 | <a name="input_ssh_key"></a> [ssh\_key](#input\_ssh\_key) | A local SSH connection is required to run the commands on all nodes to create the cluster. | <pre>object({<br>    key_name    = string<br>    public_key  = string<br>    private_key = string<br>  })</pre> | n/a | yes |
-| <a name="input_support_level"></a> [support\_level](#input\_support\_level) | Related [documentation](https://registry.terraform.io/providers/elestio/elestio/latest/docs/resources/opensearch#support_level) `#support_level` | `string` | n/a | yes |
+| <a name="input_support_level"></a> [support\_level](#input\_support\_level) | Related [documentation](https://registry.terraform.io/providers/elestio/elestio/latest/docs/resources/opensearch#support_level) `#support_level` | `string` | `"level1"` | no |
 ## Modules
 
 No modules.

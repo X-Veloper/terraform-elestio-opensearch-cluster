@@ -36,14 +36,17 @@ variable "nodes" {
 variable "opensearch_version" {
   type        = string
   nullable    = true
+  default     = null
   description = <<-EOF
-    Related [documentation](https://registry.terraform.io/providers/elestio/elestio/latest/docs/resources/opensearch#version) `#version`
+    Related [documentation](https://registry.terraform.io/providers/elestio/elestio/latest/docs/resources/opensearch#version) `#version`.
+    Use `null` for recommended Elestio version.
   EOF
 }
 
 variable "support_level" {
   type        = string
   nullable    = false
+  default     = "level1"
   description = <<-EOF
     Related [documentation](https://registry.terraform.io/providers/elestio/elestio/latest/docs/resources/opensearch#support_level) `#support_level`
   EOF

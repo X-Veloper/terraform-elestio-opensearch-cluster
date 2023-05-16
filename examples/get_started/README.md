@@ -105,7 +105,7 @@ Use `terraform output cluster_database_admin` command to output database secrets
 }
 ```
 
-Here is an example of how to use the cluster and all its nodes in the [Javascript client](https://opensearch.org/docs/latest/clients/javascript/index/) of Opensearch.
+Here is an example of how to use the Opensearch cluster and all its nodes in the [Javascript client](https://opensearch.org/docs/latest/clients/javascript/index/).
 
 ```js
 // Javascript example
@@ -139,3 +139,12 @@ client
     console.log(error);
   });
 ```
+
+## Scale the nodes
+
+To adjust the cluster size:
+
+- Adding nodes: Run `terraform apply` after adding a new node, and it will be seamlessly integrated into the cluster.
+- Removing nodes: The excess nodes will cleanly leave the cluster on the next `terraform apply`.
+
+Please note that changing the node count requires a reboot, which may result in a few minutes of service downtime.
