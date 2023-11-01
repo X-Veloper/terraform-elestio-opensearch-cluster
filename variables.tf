@@ -16,9 +16,8 @@ variable "opensearch_pass" {
   type        = string
   sensitive   = true
   description = <<-EOF
-    The password can only contain alphanumeric characters or hyphens `-`.
     Require at least 10 characters, one uppercase letter, one lowercase letter and one number.
-    Example: `qfeE42snU-bt0y-1xPWefQDq` DO NOT USE **THIS** EXAMPLE PASSWORD.
+    Generate a random valid password: https://api.elest.io/api/auth/passwordgenerator
   EOF
 
   validation {
