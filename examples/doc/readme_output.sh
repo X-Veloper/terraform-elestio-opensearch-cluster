@@ -1,11 +1,16 @@
-  # cluster_database_admin
-  {
-    "auth" = {
-      "password" = "*****"
-      "user" = "root"
-    }
-    "nodes" = [
-      "https://opensearch-0-u525.vm.elestio.app:19200",
-      "https://opensearch-1-u525.vm.elestio.app:19200",
-    ]
+{
+  "opensearch-1" = {
+    "command" = ""
+    "host" = "opensearch-1-cname.elestio.app"
+    "password" = "*****"
+    "port" = "19200"
+    "user" = "root"
   }
+  "opensearch-2" = {
+    "command" = ""
+    "host" = "opensearch-2-cname.elestio.app"
+    "password" = "*****"
+    "port" = "19200"
+    "user" = "root"
+  }
+}

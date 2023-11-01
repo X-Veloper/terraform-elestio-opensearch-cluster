@@ -15,11 +15,9 @@ Some knowledge of [terraform](https://developer.hashicorp.com/terraform/intro) i
   You need a Terraform CLI version equal or higher than v0.14.0.
   To ensure you're using the acceptable version of Terraform you may run the following command: `terraform -v`
 
-<br>
-
 ## Instructions
 
-1. Rename `secrets.tfvars.example` to `secrets.tfvars` and fill in the values.
+1. Rename `terraform.tfvars.example` to `terraform.tfvars` and fill in the values.
 
    This file contains the sensitive values to be passed as variables to Terraform.</br>
    You should **never commit this file** with git.
@@ -28,8 +26,8 @@ Some knowledge of [terraform](https://developer.hashicorp.com/terraform/intro) i
 
    ```bash
    terraform init
-   terraform plan -var-file="secrets.tfvars" # to preview changes
-   terraform apply -var-file="secrets.tfvars"
+   terraform plan  # to preview changes
+   terraform apply
    terraform show
    ```
 
@@ -44,18 +42,18 @@ Some knowledge of [terraform](https://developer.hashicorp.com/terraform/intro) i
 
 ## Testing
 
-Use `terraform output cluster_database_admin` command to output database secrets:
+Use `terraform output nodes_database_admins` command to output database secrets:
 
 ```bash
-# cluster_database_admin
+$ terraform output nodes_database_admins
 {
   "auth" = {
     "password" = "*****"
     "user" = "root"
   }
   "nodes" = [
-    "https://opensearch-0-u525.vm.elestio.app:19200",
-    "https://opensearch-1-u525.vm.elestio.app:19200",
+    "https://opensearch-1-cname.vm.elestio.app:19200",
+    "https://opensearch-2-cname.vm.elestio.app:19200",
   ]
 }
 ```
@@ -63,72 +61,54 @@ Use `terraform output cluster_database_admin` command to output database secrets
 1.  Create the first index on the **first node** and add some data:
 
     ```bash
-    curl -XPUT -u 'root:*****' 'https://opensearch-0-u525.vm.elestio.app:19200/my-first-index'
-    curl -XPUT -u 'root:*****' 'https://opensearch-0-u525.vm.elestio.app:19200/my-first-index/_doc/1' -H 'Content-Type: application/json' -d '{"Description": "To be or not to be, that is the question."}'
+    curl -XPUT -u 'root:*****' 'https://opensearch-1-cname.vm.elestio.app:19200/my-first-index'
+    curl -XPUT -u 'root:*****' 'https://opensearch-1-cname.vm.elestio.app:19200/my-first-index/_doc/1' -H 'Content-Type: application/json' -d '{"Description": "To be or not to be, that is the question."}'
     ```
 
 2.  Retrieve the data on the **second node** to see that it was replicated properly:
 
     ```bash
-    curl -XGET -u 'root:*****' 'https://opensearch-1-u525.vm.elestio.app:19200/my-first-index/_doc/1'
+    curl -XGET -u 'root:*****' 'https://opensearch-2-cname.vm.elestio.app:19200/my-first-index/_doc/1'
     ```
 
 3.  After verifying that the cluster is working, delete the document and the index:
 
     ```bash
     # You can make these requests on any of the nodes
-    curl -XDELETE -u 'root:*****' 'https://opensearch-1-u525.vm.elestio.app:19200/my-first-index/_doc/1'
-    curl -XDELETE -u 'root:*****' 'https://opensearch-0-u525.vm.elestio.app:19200/my-first-index/'
+    curl -XDELETE -u 'root:*****' 'https://opensearch-1-cname.vm.elestio.app:19200/my-first-index/_doc/1'
+    curl -XDELETE -u 'root:*****' 'https://opensearch-2-cname.vm.elestio.app:19200/my-first-index/'
     ```
 
 You can try turning off the first node on the [Elestio dashboard](https://dash.elest.io/).
 The second node remains functional.
 When you restart it, it automatically updates with the new data.
 
-<br>
-
 ## How to use OpenSearch cluster
-
-Use `terraform output cluster_database_admin` command to output database secrets:
-
-```bash
-# cluster_database_admin
-{
-  "auth" = {
-    "password" = "*****"
-    "user" = "root"
-  }
-  "nodes" = [
-    "https://opensearch-0-u525.vm.elestio.app:19200",
-    "https://opensearch-1-u525.vm.elestio.app:19200",
-  ]
-}
-```
 
 Here is an example of how to use the Opensearch cluster and all its nodes in the [Javascript client](https://opensearch.org/docs/latest/clients/javascript/index/).
 
 ```js
 // Javascript example
-const { Client } = require("@opensearch-project/opensearch/.");
+const { Client } = require('@opensearch-project/opensearch/.');
 
 const client = new Client({
   auth: {
-    username: "root",
-    password: "*****",
+    username: 'root',
+    password: '*****',
   },
   nodes: [
-    "https://opensearch-0-u525.vm.elestio.app:19200",
-    "https://opensearch-1-u525.vm.elestio.app:19200",
+    'https://opensearch-1-cname.vm.elestio.app:19200',
+    'https://opensearch-2-cname.vm.elestio.app:19200',
   ],
-  nodeSelector: "round-robin",
+  nodeSelector: 'round-robin',
 });
 
 client
   .search({
-    index: "my-index",
+    index: 'my-index',
     body: {
       query: {
-        match: { title: "OpenSearch" },
+        match: { title: 'OpenSearch' },
       },
     },
   })

@@ -1,0 +1,5 @@
+cd /opt/app
+docker-compose down
+sed -i 's/discovery.seed_hosts=.*/discovery.seed_hosts=${join(",", global_ips)}/' docker-compose.yml
+docker-compose up -d
+sleep 5

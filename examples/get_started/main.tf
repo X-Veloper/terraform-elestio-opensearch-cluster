@@ -12,52 +12,52 @@ provider "elestio" {
 }
 
 resource "elestio_project" "project" {
-  name             = "OpenSearch Cluster"
-  description      = "Ready-to-deploy terraform example"
-  technical_emails = var.elestio_email
+  name = "opensearch-cluster"
 }
 
 module "cluster" {
   source = "elestio-examples/opensearch-cluster/elestio"
-  # source = "../.." # If you want to use the local version
 
   project_id         = elestio_project.project.id
-  server_name        = "opensearch"
-  opensearch_version = null
-  support_level      = "level1"
-  admin_email        = var.elestio_email
+  opensearch_version = null # null means latest version
+  opensearch_pass    = var.opensearch_pass
 
-  # Read the documentation to see the full providers/datacenters/server_types list:
-  # https://registry.terraform.io/providers/elestio/elestio/latest/docs/guides/3_providers_datacenters_server_types
+  configuration_ssh_key = {
+    username    = "admin"
+    public_key  = chomp(file("~/.ssh/id_rsa.pub"))
+    private_key = file("~/.ssh/id_rsa")
+  }
+
   nodes = [
     {
-      provider_name = "hetzner"
-      datacenter    = "fsn1" # germany
-      server_type   = "SMALL-1C-2G"
+      server_name   = "opensearch-1"
+      provider_name = "scaleway"
+      datacenter    = "fr-par-1"
+      server_type   = "MEDIUM-3C-4G"
     },
     {
-      provider_name = "hetzner"
-      datacenter    = "hel1" # finlande
-      server_type   = "SMALL-1C-2G"
+      server_name   = "opensearch-2"
+      provider_name = "scaleway"
+      datacenter    = "fr-par-2"
+      server_type   = "MEDIUM-3C-4G"
+    },
+    {
+      server_name   = "opensearch-3"
+      provider_name = "scaleway"
+      datacenter    = "fr-par-2"
+      server_type   = "MEDIUM-3C-4G"
     },
   ]
-
-  ssh_key = {
-    key_name    = "admin"                   # or var.ssh_key.name
-    public_key  = file("~/.ssh/id_rsa.pub") # or var.ssh_key.public_key
-    private_key = file("~/.ssh/id_rsa")     # or var.ssh_key.private_key
-    # See variables.tf and secrets.tfvars file comments if your want to use variables instead of file() function.
-  }
 }
 
-output "cluster_admin" {
-  value       = module.cluster.cluster_admin
+output "nodes_admins" {
+  value       = { for node in module.cluster.nodes : node.server_name => node.admin }
   sensitive   = true
-  description = "Kibana secrets"
+  description = "Kibana dashboard secrets"
 }
 
-output "cluster_database_admin" {
-  value       = module.cluster.cluster_database_admin
+output "nodes_database_admins" {
+  value       = { for node in module.cluster.nodes : node.server_name => node.database_admin }
   sensitive   = true
   description = "Opensearch database secrets"
 }
