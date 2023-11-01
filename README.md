@@ -48,9 +48,9 @@ module "cluster" {
 }
 ```
 
-Keep your mysql password safe, you will need it to access the admin panel.
+Keep your opensearch password safe, you will need it to access the admin panel.
 
-If you want to know more about node configuration, check the mysql service documentation [here](https://registry.terraform.io/providers/elestio/elestio/latest/docs/resources/mysql).
+If you want to know more about node configuration, check the opensearch service documentation [here](https://registry.terraform.io/providers/elestio/elestio/latest/docs/resources/opensearch).
 
 If you want to choose your own provider, datacenter or server type, check the guide [here](https://registry.terraform.io/providers/elestio/elestio/latest/docs/guides/providers_datacenters_server_types).
 
@@ -143,7 +143,7 @@ output "nodes_database_admins" {
 }
 ```
 
-You can now run `terraform init` and `terraform apply` to create your MySQL cluster.
+You can now run `terraform init` and `terraform apply` to create your OpenSearch cluster.
 After a few minutes, the cluster will be ready to use.
 You can access your outputs with `terraform output`:
 
