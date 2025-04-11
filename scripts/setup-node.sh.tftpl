@@ -14,6 +14,6 @@ rm -rf data/*
 
 sed -i 'N;N;N;N;N;N;s/ports:\n      - 172.17.0.1:9200:9200\n      - 172.17.0.1:9600:9600\n    networks:\n      - opensearch-net/network_mode: "host"/' docker-compose.yml
 sed -i 's/"discovery.type=single-node"/discovery.seed_hosts=/' docker-compose.yml
-sed -i '/      - node.name=opensearch-node1/c\      - node.name=opensearch-${server_name}\n      - cluster.initial_cluster_manager_nodes=opensearch-${manager_server_name}\' docker-compose.yml
+sed -i '/      - node.name=opensearch-node1/c\      - node.name=opensearch-${server_name}\n      - cluster.initial_cluster_manager_nodes=opensearch-${manager_server_name}' docker-compose.yml
 sed -i 's/opensearch-node1:9200/${global_ip}:9200/g' docker-compose.yml
 sed -i 's/172.17.0.1/${global_ip}/g' docker-compose.yml
