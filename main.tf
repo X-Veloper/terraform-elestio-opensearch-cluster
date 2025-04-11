@@ -1,3 +1,9 @@
+# Define locals at the module level
+locals {
+  # Construct the seed hosts string from the public IPs of all nodes
+  seed_hosts_string = join(",", [for n in elestio_opensearch.nodes : "${n.ipv4}:9300"])
+}
+
 resource "elestio_opensearch" "nodes" {
   for_each = { for i, value in var.nodes : value.server_name => merge(value, { index = i }) }
 
@@ -55,7 +61,8 @@ resource "null_resource" "update_nodes_env" {
   for_each = { for node in elestio_opensearch.nodes : node.server_name => node }
 
   triggers = {
-    cluster_nodes_global_ips = join(",", [for n in elestio_opensearch.nodes : n.global_ip])
+    # Rerun this resource if the list of node IPs changes
+    cluster_nodes_ips = local.seed_hosts_string
   }
 
   connection {
@@ -66,15 +73,17 @@ resource "null_resource" "update_nodes_env" {
 
   provisioner "file" {
     destination = "/opt/app/update-node.sh"
+    # Pass the pre-constructed seed hosts string to the template
     content = templatefile("${path.module}/scripts/update-node.sh.tftpl", {
-      # Pass public IPs for discovery seed hosts
-      public_ips = [for n in elestio_opensearch.nodes : n.ipv4] 
+      SEED_HOSTS = local.seed_hosts_string
     })
   }
 
   provisioner "remote-exec" {
     inline = [
       "cd /opt/app",
+      # Make the script executable before running
+      "chmod +x update-node.sh", 
       "sh update-node.sh"
     ]
   }
