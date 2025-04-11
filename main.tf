@@ -36,9 +36,10 @@ resource "elestio_opensearch" "nodes" {
     content = templatefile("${path.module}/scripts/setup-node.sh.tftpl", {
       manager_server_name = var.nodes[0].server_name
       server_name         = self.server_name
-      global_ip           = self.global_ip
+      global_ip           = self.ipv4
       cname               = self.cname
       index               = each.value.index
+      SOFTWARE_VERSION_TAG = self.version
     })
   }
 
