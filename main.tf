@@ -61,8 +61,9 @@ resource "null_resource" "update_nodes_env" {
   for_each = { for node in elestio_opensearch.nodes : node.server_name => node }
 
   triggers = {
-    # Rerun this resource if the list of node IPs changes
+    # Rerun this resource if the list of node IPs changes or the module path changes
     cluster_nodes_ips = local.seed_hosts_string
+    module_source_change = filesha256("${path.module}/scripts/docker-compose.yml.tftpl") # Add dependency on a new template file
   }
 
   connection {
@@ -71,18 +72,29 @@ resource "null_resource" "update_nodes_env" {
     private_key = var.configuration_ssh_key.private_key
   }
 
+  # Provisioner 1: Upload the final docker-compose.yml using a dedicated template
   provisioner "file" {
-    destination = "/opt/app/update-node.sh"
-    # Pass the pre-constructed seed hosts string to the template
-    content = templatefile("${path.module}/scripts/update-node.sh.tftpl", {
-      SEED_HOSTS = local.seed_hosts_string
+    destination = "/opt/app/docker-compose.yml"
+    content = templatefile("${path.module}/scripts/docker-compose.yml.tftpl", {
+      # Variables needed for the final docker-compose file
+      server_name         = each.value.server_name
+      public_ip           = each.value.ipv4
+      manager_server_name = var.nodes[0].server_name
+      seed_hosts_string   = local.seed_hosts_string
+      software_version_tag= each.value.version
     })
   }
 
+  # Provisioner 2: Upload the simplified update script (just runs docker-compose)
+  provisioner "file" {
+    destination = "/opt/app/update-node.sh"
+    content = templatefile("${path.module}/scripts/update-node-simplified.sh.tftpl", {})
+  }
+
+  # Provisioner 3: Execute the simplified update script
   provisioner "remote-exec" {
     inline = [
       "cd /opt/app",
-      # Make the script executable before running
       "chmod +x update-node.sh", 
       "sh update-node.sh"
     ]

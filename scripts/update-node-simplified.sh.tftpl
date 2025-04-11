@@ -1,0 +1,19 @@
+#!/bin/bash
+set -e # Exit on error
+
+echo "Applying final Docker Compose configuration..."
+cd /opt/app
+
+# Ensure docker-compose.yml exists (uploaded by the previous provisioner)
+if [ ! -f docker-compose.yml ]; then
+  echo "Error: docker-compose.yml not found in /opt/app."
+  exit 1
+fi
+
+echo "Stopping existing containers (if any)..."
+docker-compose down || echo "No existing containers to stop or error stopping them."
+
+echo "Starting OpenSearch services with final configuration..."
+docker-compose up -d
+
+echo "Services started." 
