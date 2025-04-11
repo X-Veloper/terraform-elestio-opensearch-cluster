@@ -12,8 +12,15 @@ docker-compose down
 rm -rf data/*
 %{ endif ~}
 
-sed -i 'N;N;N;N;N;N;s/ports:\n      - 172.17.0.1:9200:9200\n      - 172.17.0.1:9600:9600\n    networks:\n      - opensearch-net/network_mode: "host"/' docker-compose.yml
+# Update discovery type
 sed -i 's/"discovery.type=single-node"/discovery.seed_hosts=/' docker-compose.yml
+
+# Update node name and initial manager
 sed -i '/      - node.name=opensearch-node1/c\      - node.name=opensearch-${server_name}\n      - cluster.initial_cluster_manager_nodes=opensearch-${manager_server_name}' docker-compose.yml
+
+# Update IP for dashboard config
 sed -i 's/opensearch-node1:9200/${global_ip}:9200/g' docker-compose.yml
+
+# Update global IP for existing ports (9200, 9600) and add port 9300 mapping
 sed -i 's/172.17.0.1/${global_ip}/g' docker-compose.yml
+sed -i '/^    ports:/a\      - ${global_ip}:9300:9300' docker-compose.yml
