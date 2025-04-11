@@ -66,7 +66,8 @@ resource "null_resource" "update_nodes_env" {
   provisioner "file" {
     destination = "/opt/app/update-node.sh"
     content = templatefile("${path.module}/scripts/update-node.sh.tftpl", {
-      global_ips = [for n in elestio_opensearch.nodes : n.global_ip]
+      # Pass public IPs for discovery seed hosts
+      public_ips = [for n in elestio_opensearch.nodes : n.ipv4] 
     })
   }
 

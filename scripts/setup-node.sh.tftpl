@@ -1,26 +1,54 @@
 # Update NGINX configuration
 cd /opt/elestio/nginx/conf.d
-sed -i 's/172.17.0.1/${global_ip}/g' ${cname}.conf
-docker-compose down
-docker-compose up -d
+sed -i 's/172.17.0.1/${global_ip}/g' ${cname}.conf || echo "Failed to update Nginx conf, continuing..."
+docker-compose down || echo "Failed to stop Nginx, continuing..."
+docker-compose up -d || echo "Failed to start Nginx, continuing..."
 
-# Update Docker Compose configuration
+# Create new Docker Compose configuration
 cd /opt/app
-docker-compose down
+docker-compose down || echo "Failed to stop existing app containers, continuing..."
 
 %{ if index != 0 ~}
-rm -rf data/*
+rm -rf data/* || echo "Failed to clear data directory, continuing..."
 %{ endif ~}
 
-# Update discovery type
-sed -i 's/"discovery.type=single-node"/discovery.seed_hosts=/' docker-compose.yml
-
-# Update node name and initial manager
-sed -i '/      - node.name=opensearch-node1/c\      - node.name=opensearch-${server_name}\n      - cluster.initial_cluster_manager_nodes=opensearch-${manager_server_name}' docker-compose.yml
-
-# Update IP for dashboard config
-sed -i 's/opensearch-node1:9200/${global_ip}:9200/g' docker-compose.yml
-
-# Update global IP for existing ports (9200, 9600) and add port 9300 mapping
-sed -i 's/172.17.0.1/${global_ip}/g' docker-compose.yml
-sed -i '/^    ports:/a\      - ${global_ip}:9300:9300' docker-compose.yml
+# Create new docker-compose.yml with host networking and public IPs
+cat > docker-compose.yml << EOF
+version: "3"
+services:
+  opensearch-node1:
+    image: opensearchproject/opensearch:\${SOFTWARE_VERSION_TAG}
+    restart: always
+    container_name: opensearch-node1
+    network_mode: "host"
+    environment:
+      - cluster.name=opensearch-cluster
+      - node.name=opensearch-${server_name}
+      - network.host=${global_ip}
+      - network.publish_host=${global_ip}
+      - cluster.initial_cluster_manager_nodes=opensearch-${manager_server_name}
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "DISABLE_INSTALL_DEMO_CONFIG=true"
+      - "DISABLE_SECURITY_PLUGIN=true"
+      - discovery.seed_hosts=PLACEHOLDER_IPS
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - ./data:/usr/share/opensearch/data
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:\${SOFTWARE_VERSION_TAG}
+    restart: always
+    container_name: opensearch-dashboards
+    network_mode: "host"
+    environment:
+      OPENSEARCH_HOSTS: '["http://${global_ip}:9200"]'
+      DISABLE_SECURITY_DASHBOARDS_PLUGIN: "true"
+volumes:
+  opensearch-data1:
+EOF

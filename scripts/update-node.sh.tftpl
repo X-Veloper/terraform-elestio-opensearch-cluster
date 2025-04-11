@@ -1,5 +1,31 @@
+#!/bin/bash
+set -e # Exit on error
+
+echo "Updating node configuration with cluster IPs..."
 cd /opt/app
-docker-compose down
-sed -i 's/discovery.seed_hosts=.*/discovery.seed_hosts=${join(",", global_ips)}/' docker-compose.yml
+
+# Ensure docker-compose.yml exists
+if [ ! -f docker-compose.yml ]; then
+  echo "Error: docker-compose.yml not found in /opt/app. Setup script might have failed."
+  exit 1
+fi
+
+# Construct the seed hosts string from public IPs
+# Example: 1.1.1.1:9300,2.2.2.2:9300
+SEED_HOSTS=$(echo "${join(",", [for ip in public_ips : "${ip}:9300"])}")
+
+echo "Seed hosts: ${SEED_HOSTS}"
+
+# Replace the placeholder in docker-compose.yml
+# Using a different delimiter for sed because SEED_HOSTS contains slashes if IPv6 were used (though we use IPv4)
+sed -i "s|PLACEHOLDER_IPS|${SEED_HOSTS}|g" docker-compose.yml
+
+# Stop any potentially running containers (just in case)
+echo "Stopping existing containers (if any)..."
+docker-compose down || echo "No existing containers to stop or error stopping them."
+
+# Start the services with the final configuration
+echo "Starting OpenSearch services..."
 docker-compose up -d
-sleep 5
+
+echo "Node configuration updated and services started."
